@@ -2,17 +2,54 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/* Check if the compiler thinks you are targeting the wrong operating system. */
-#if defined(__linux__)
-#error "You are not using a cross-compiler, you will most certainly run into trouble"
-#endif
+/*------------------ GDT ------------------*/
 
-/* This tutorial will only work for the 32-bit ix86 targets. */
-#if !defined(__i386__)
-#error "This tutorial needs to be compiled with a ix86-elf compiler"
-#endif
+struct gdt_entry{
+    unsigned short limit_low;
+    unsigned short base_low;
+    unsigned char base_middle;
+    unsigned char access;
+    unsigned char granularity;
+    unsigned char base_high;
+} __attribute__((packed));
 
-/* Hardware text mode color constants. */
+struct gdt_ptr{
+    unsigned short limit;
+    unsigned int base;
+} __attribute__((packed));
+
+struct gdt_entry gdt[3];
+struct gdt_ptr _gp;
+
+extern void _gdt_flush();
+
+void gdt_set_gate(int num, unsigned long base, unsigned long limit, unsigned char access, unsigned char gran){
+    gdt[num].base_low = (base & 0xFFFF);
+    gdt[num].base_middle = (base >> 16) & 0xFF;
+    gdt[num].base_high = (base >> 24) & 0xFF;
+
+    gdt[num].limit_low = (limit & 0xFFFF);
+    gdt[num].granularity = ((limit >> 16) & 0x0F);
+
+    gdt[num].granularity |= (gran & 0xF0);
+    gdt[num].access = access;
+}      
+
+void gdt_install(){
+    _gp.limit = (sizeof(struct gdt_entry) * 3) - 1;
+    _gp.base = (uint32_t)&gdt;
+
+    gdt_set_gate(0, 0, 0, 0, 0);
+
+    gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF);
+
+    gdt_set_gate(2, 0, 0xFFFFFFFF, 0x92, 0xCF);
+
+    _gdt_flush();
+}
+		
+/*--------------------- PRINT ----------------------*/	
+
 enum vga_color {
 	VGA_COLOR_BLACK = 0,
 	VGA_COLOR_BLUE = 1,
@@ -63,7 +100,7 @@ void terminal_initialize(void)
 {
 	terminal_row = 0;
 	terminal_column = 0;
-	terminal_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+	terminal_color = vga_entry_color(VGA_COLOR_LIGHT_MAGENTA, VGA_COLOR_BLACK);
 	
 	for (size_t y = 0; y < VGA_HEIGHT; y++) {
 		for (size_t x = 0; x < VGA_WIDTH; x++) {
@@ -86,6 +123,13 @@ void terminal_putentryat(char c, uint8_t color, size_t x, size_t y)
 
 void terminal_putchar(char c) 
 {
+    if (c == '\n') {
+        terminal_column = 0;
+        terminal_row++;
+        if (terminal_row == VGA_HEIGHT)
+            terminal_row = 0; // eller scroll senere
+        return;
+    }
 	terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
 	if (++terminal_column == VGA_WIDTH) {
 		terminal_column = 0;
@@ -105,11 +149,23 @@ void terminal_writestring(const char* data)
 	terminal_write(data, strlen(data));
 }
 
-void main(void) 
-{
-	/* Initialize terminal interface */
-	terminal_initialize();
 
-	/* Newline support is left as an exercise. */
-	terminal_writestring("Hello, kernel World!\n");
+void main(){
+	gdt_install();
+    terminal_initialize();
+
+
+    terminal_writestring("     -----.       .-'''-.  \n");
+    terminal_writestring("  .'  .-,  '.    / _     \\ \n");
+    terminal_writestring(" / ,-.|  \\ _ \\  (`' )/`--' \n");
+    terminal_writestring(";  \\  '_ /  | :(_ o _).    \n");
+    terminal_writestring("|  _`,/ \\ _/  | (_,_). '.  \n");
+    terminal_writestring(": (  '\\_/ \\   ;.---.  \\  : \n");
+    terminal_writestring(" \\ `\"/  \\  ) / \\    `-'  | \n");
+    terminal_writestring("  '. \\_/``\".'   \\       /  \n");
+    terminal_writestring("    '-----'      `-...-'   \n\n\n\n");
+
+     terminal_writestring(" -----------------------------------------------");
+    terminal_writestring(" Hello, World!\n");
+    for(;;);
 }
