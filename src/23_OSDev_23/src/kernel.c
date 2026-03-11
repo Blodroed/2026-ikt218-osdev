@@ -152,20 +152,24 @@ void terminal_writestring(const char* data)
 
 void main(){
 	gdt_install();
-    terminal_initialize();
+    terminal_initialize();           
 
-
-    terminal_writestring("     -----.       .-'''-.  \n");
-    terminal_writestring("  .'  .-,  '.    / _     \\ \n");
-    terminal_writestring(" / ,-.|  \\ _ \\  (`' )/`--' \n");
-    terminal_writestring(";  \\  '_ /  | :(_ o _).    \n");
-    terminal_writestring("|  _`,/ \\ _/  | (_,_). '.  \n");
-    terminal_writestring(": (  '\\_/ \\   ;.---.  \\  : \n");
-    terminal_writestring(" \\ `\"/  \\  ) / \\    `-'  | \n");
-    terminal_writestring("  '. \\_/``\".'   \\       /  \n");
-    terminal_writestring("    '-----'      `-...-'   \n\n\n\n");
-
-     terminal_writestring(" -----------------------------------------------");
-    terminal_writestring(" Hello, World!\n");
+	terminal_writestring("           \xB2\xDB\xB2\n");
+	terminal_writestring("          \xB2\xDB\xDB\xDB\xB2\n");
+	terminal_writestring("         \xB2\xDB\xDB\xB0\xDB\xDB\xB2\n");
+	terminal_writestring("        \xB2\xDB\xDB\xB0 \xB0\xDB\xDB\xB2\n");
+	terminal_writestring("\xB2\xB2\xB2\xB2\xDB\xDB\xDB\xDB\xDB\xB0     \xB0\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xDB\xB0\xB0\xB0\xB0\xB0\xB0\xB0\xB0\xB0\xB0\n");
+	terminal_writestring(" \xB0\xDB\xDB\xB0\n");
+	terminal_writestring("   \xDB\xDB\xB2                \xB2\xDB\xDB\xDB\xDB\xB2     \xB2\xDB\xDB\xDB\xB2\n");
+	terminal_writestring("     \xDB\xDB\xB2              \xDB\xB0   \xB0\xDB   \xDB\xB0\n");
+	terminal_writestring("     \xB2\xDB\xB0              \xDB     \xDB   \xDB\xB2\n");
+	terminal_writestring("    \xDB\xDB\xB0    \xB2          \xDB     \xDB    \xB0\xB0\xB0\xB0\xDB\xB2\n");
+	terminal_writestring("  \xB2\xDB\xB0    \xB2\xDB\xB0\xDB\xB2        \xDB\xB2   \xB2\xDB         \xDB\n");
+	terminal_writestring(" \xDB\xDB  \xB2\xB2\xDB\xDB\xB0  \xB0\xDB\xB2       \xB0\xDB\xDB\xDB\xDB\xDB\xB0   \xB0\xDB\xB2\xB2\xB2\xDB\xB0\n");
+	terminal_writestring("  \xB0\xDB\xDB\xB0\xB0       \xB0\xDB\xB2\n");
+	terminal_writestring("                \xB0\xB0\n");
+	terminal_writestring(" ----------------------------------------------- \n");
+	terminal_writestring(" Hello, World!\n");
+	
     for(;;);
 }

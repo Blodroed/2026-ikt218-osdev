@@ -41,8 +41,6 @@ _start:
 
     call main ; Jump main function
 
-
- 
       
 _gdt_flush:
     lgdt [_gp]        
