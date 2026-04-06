@@ -76,6 +76,8 @@ add_executable(uiaos-kernel
 
 	src/libc/string.c
 	src/libc/stdio.c
+
+	src/apps/song/song.c
 )
 
 # Include directories for the kernel target

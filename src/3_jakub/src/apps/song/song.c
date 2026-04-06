@@ -1,0 +1,122 @@
+#include "song/song.h"
+
+#include "kernel/pit.h"
+#include "kernel/heap.h"
+#include "common.h"
+#include "libc/stdio.h"
+
+static volatile int music_stop_flag = 0;
+
+void play_song_impl(Song *song);
+
+SongPlayer* create_song_player() {
+    SongPlayer* player = (SongPlayer*)malloc(sizeof(SongPlayer));
+    if (player) {
+        player->play_song = play_song_impl;
+    }
+    return player;
+}
+
+void enable_speaker(){
+    // Read the current state of the PC speaker control register
+    uint8_t speaker_state = inb(PC_SPEAKER_PORT);
+    /*
+    Bit 0: Speaker gate
+            0: Speaker disabled
+            1: Speaker enabled
+    Bit 1: Speaker data
+            0: Data is not passed to the speaker
+            1: Data is passed to the speaker
+    */
+    // Check if bits 0 and 1 are not set (0 means that the speaker is disabled)
+    if (speaker_state != (speaker_state | 3)) {
+        // If bits 0 and 1 are not set, enable the speaker by setting bits 0 and 1 to 1
+        outb(PC_SPEAKER_PORT, speaker_state | 3);
+    }
+}
+
+void disable_speaker() {
+    // Turn off the PC speaker
+    uint8_t speaker_state = inb(PC_SPEAKER_PORT);
+    outb(PC_SPEAKER_PORT, speaker_state & 0xFC);
+}
+
+
+void play_sound(uint32_t frequency) {
+    if (frequency == 0) {
+        return;
+    }
+
+    uint16_t divisor = (uint16_t)(PIT_BASE_FREQUENCY / frequency);
+
+    // Set up the PIT
+    outb(PIT_CMD_PORT, 0b10110110); 
+    outb(PIT_CHANNEL2_PORT, (uint8_t)(divisor & 0xFF));
+    outb(PIT_CHANNEL2_PORT, (uint8_t)(divisor >> 8));
+
+    // Enable the speaker by setting bits 0 and 1
+    uint8_t speaker_state = inb(PC_SPEAKER_PORT);
+    outb(PC_SPEAKER_PORT, speaker_state | 0x03);
+}
+
+void stop_sound(){
+    // Stop the sound by disabling the gate to the speaker
+    uint8_t speaker_state = inb(PC_SPEAKER_PORT);
+    outb(PC_SPEAKER_PORT, speaker_state & ~0x03); // Clear bits 0 and 1
+}
+
+void play_song_impl(Song *song) {
+    music_stop_flag = 0;  // Reset flag
+    enable_speaker();
+    for (uint32_t i = 0; i < song->length; i++) {
+        if (music_stop_flag) {
+            printf("Music stopped by user.\n");
+            break;
+        }
+        Note* note = &song->notes[i];
+        printf("Note: %d, Freq=%d, Sleep=%d\n", i, note->frequency, note->duration);
+        play_sound(note->frequency);
+        sleep_interrupt(note->duration);
+        stop_sound();
+    }
+    disable_speaker();
+}
+
+void play_song(Song *song) {
+    play_song_impl(song);
+}
+
+void play_music(int song_index) {
+    Song songs[] = {
+        {music_1, sizeof(music_1) / sizeof(Note)},
+        {starwars_theme, sizeof(starwars_theme) / sizeof(Note)},
+        {battlefield_1942_theme, sizeof(battlefield_1942_theme) / sizeof(Note)},
+        {music_2, sizeof(music_2) / sizeof(Note)},
+        {music_3, sizeof(music_3) / sizeof(Note)},
+        {music_4, sizeof(music_4) / sizeof(Note)},
+        {music_5, sizeof(music_5) / sizeof(Note)},
+        {music_6, sizeof(music_6) / sizeof(Note)}
+    };
+    uint32_t n_songs = sizeof(songs) / sizeof(Song);
+
+    if (song_index < 0 || (uint32_t)song_index >= n_songs) {
+        printf("Invalid song index. Available songs: 0-%u\n", n_songs - 1);
+        return;
+    }
+
+    SongPlayer* player = create_song_player();
+    if (!player) {
+        printf("Failed to create song player.\n");
+        return;
+    }
+
+    printf("Playing song %d...\n", song_index);
+    player->play_song(&songs[song_index]);
+    printf("Finished song %d.\n", song_index);
+
+    free(player);
+}
+
+void stop_music(void) {
+    music_stop_flag = 1;
+}
