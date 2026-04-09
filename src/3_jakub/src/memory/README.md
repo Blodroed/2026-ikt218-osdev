@@ -6,8 +6,8 @@ This folder contains the active kernel memory code.
 
 - `heap.c`: heap allocator, `malloc`, `free`, `pmalloc`, `pfree`, `print_memory_layout`
 - `paging.c`: paging setup and identity mapping
-- `../../include/kernel/heap.h`: public heap API
-- `../../include/kernel/paging.h`: public paging API
+- `../../memory/heap.h`: public heap API
+- `../../memory/paging.h`: public paging API
 - `../libc/memory.c`: `memcpy`, `memset`, `memset16`
 
 ## Boot Flow
@@ -56,7 +56,7 @@ Important rule:
 Useful files for next step:
 
 - `include/kernel/pit.h`
-- `src/pit.c`
+- `src/kernel/pit.c`
 - `include/common.h`
 - `src/common.c`
 - `reference/assignment4/apps/song/src/song.cpp` as inspiration only

@@ -1,5 +1,6 @@
 #include "apps/raycaster/raycaster_internal.h"
 #include "apps/song/song.h"
+#include "apps/song/song_data.h"
 #include "common.h"
 #include "kernel/pit.h"
 
@@ -10,7 +11,7 @@
 // This is non-blocking, so the game can keep rendering every frame
 static void raycaster_play_background_theme(uint32_t current_ticks, uint32_t *next_note_tick, uint32_t *music_index)
 {
-    const uint32_t bg_theme_len = (uint32_t)(sizeof(raycaster_bg_theme) / sizeof(raycaster_bg_theme[0]));
+    const uint32_t bg_theme_len = raycaster_bg_theme_length;
     // Nothing to play yet, or song is empty
     if (bg_theme_len == 0 || (int32_t)(current_ticks - *next_note_tick) < 0) {
         return;

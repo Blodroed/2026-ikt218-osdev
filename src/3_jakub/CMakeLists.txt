@@ -65,7 +65,8 @@ add_executable(uiaos-kernel
 	src/descriptor_tables.asm
 
 	src/common.c
-	src/pit.c
+	src/kernel/cli.c
+	src/kernel/pit.c
 	src/interrupts/idt.c
 	src/interrupts/isr.c
 	src/interrupts/interrupts.asm
@@ -78,6 +79,7 @@ add_executable(uiaos-kernel
 	src/libc/stdio.c
 
 	src/apps/song/song.c
+	src/apps/song/song_data.c
 	src/apps/raycaster/raycaster_core.c
 	src/apps/raycaster/raycaster_movement.c
 	src/apps/raycaster/raycaster_input.c
@@ -86,7 +88,7 @@ add_executable(uiaos-kernel
 )
 
 # Include directories for the kernel target
-target_include_directories(uiaos-kernel PUBLIC include)
+target_include_directories(uiaos-kernel PUBLIC include .)
 
 
 # Specify compile options for C and C++

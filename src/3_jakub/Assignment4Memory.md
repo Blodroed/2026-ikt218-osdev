@@ -14,14 +14,17 @@ A key result of the final cleanup is that the project now has a clear separation
 
 The live implementation now uses the following files:
 
-- `include/kernel/heap.h`
-- `include/kernel/paging.h`
+- `memory/heap.h`
+- `memory/paging.h`
+- `memory/memory.h`
 - `include/kernel/pit.h`
+- `include/kernel/cli.h`
 - `include/libc/memory.h`
 - `src/memory/heap.c`
 - `src/memory/paging.c`
 - `src/libc/memory.c`
-- `src/pit.c`
+- `src/kernel/pit.c`
+- `src/kernel/cli.c`
 
 This layout is more professional than the earlier structure, because heap management, paging, timer logic, and libc-style memory helpers now have separate responsibilities.
 
@@ -50,7 +53,7 @@ All `Zone.Identifier` files were removed. These files were Windows download meta
 
 ### 3.1 Heap Interface and Implementation
 
-The active heap API is declared in `include/kernel/heap.h` and implemented in `src/memory/heap.c`.
+The active heap API is declared in `memory/heap.h` and implemented in `src/memory/heap.c`.
 
 The heap implementation provides:
 
@@ -86,7 +89,7 @@ The implementation uses a small descriptor array and supports contiguous multi-p
 
 ### 3.3 Paging
 
-The paging interface is declared in `include/kernel/paging.h` and implemented in `src/memory/paging.c`.
+The paging interface is declared in `memory/paging.h` and implemented in `src/memory/paging.c`.
 
 The current paging setup is intentionally simple:
 
@@ -116,19 +119,19 @@ This was an important cleanup step. These functions are generic libc-style routi
 
 ### 3.5 Compatibility Layer
 
-To avoid breaking older includes during the cleanup, `include/kernel/memory.h` was kept as a compatibility umbrella header.
+To avoid overloading a single header while still keeping memory-related includes convenient, `memory/memory.h` is kept as an umbrella header for the memory subsystem.
 
 That header now forwards to:
 
-- `kernel/heap.h`
-- `kernel/paging.h`
+- `memory/heap.h`
+- `memory/paging.h`
 - `libc/memory.h`
 
 This means the architecture is cleaner, while the transition remains safe.
 
 ## 4. PIT Subsystem
 
-The PIT API is declared in `include/kernel/pit.h` and implemented in `src/pit.c`.
+The PIT API is declared in `include/kernel/pit.h` and implemented in `src/kernel/pit.c`.
 
 The current implementation provides:
 
@@ -175,7 +178,7 @@ The final system does not rely only on silent initialization. Several visible ru
 Memory use is demonstrated in two ways:
 
 - the C++ `new` path is exercised in `src/kernel.cpp`
-- the CLI history system in `src/interrupts/keyboard.c` stores entered lines on the heap using `malloc()` and later frees them again
+- the CLI history system in `src/kernel/cli.c` stores entered lines on the heap using `malloc()` and later frees them again
 
 This makes the allocator observable during normal interaction rather than only during boot.
 
@@ -196,6 +199,8 @@ The keyboard path evolved into a simple CLI that helps demonstrate the kernel st
 - `clear`
 
 This CLI was not required by the assignment, but it substantially improved observability and made debugging easier.
+
+After the later cleanup, the CLI logic itself no longer lives inside the keyboard driver. The keyboard module handles scancodes and line input, while `src/kernel/cli.c` owns history and command execution.
 
 ## 7. Stability and UX Fixes During Integration
 
@@ -230,8 +235,9 @@ The most important cleanup steps were:
 - renaming `malloc.c` to `heap.c`
 - renaming `memory.c` to `paging.c`
 - moving `memutils.c` into `src/libc/memory.c`
-- splitting the public headers into `heap.h`, `paging.h`, and `libc/memory.h`
-- keeping `kernel/memory.h` as a compatibility header instead of an overloaded catch-all API
+- splitting the public headers into `memory/heap.h`, `memory/paging.h`, and `libc/memory.h`
+- keeping `memory/memory.h` as a small umbrella header instead of an overloaded catch-all API
+- moving `pit.c` and `cli.c` under `src/kernel/` so kernel services are grouped together
 
 This cleanup did not change the overall behavior of the kernel, but it made the design easier to read and much easier to hand over.
 
@@ -250,7 +256,7 @@ The following prerequisites are already in place:
 - low-level port I/O through `common.h` and `src/common.c`
 - PIT constants in `include/kernel/pit.h`
 - access to PIT channel 2 and `PC_SPEAKER_PORT` through that same header
-- a working timer on PIT channel 0 in `src/pit.c`
+- a working timer on PIT channel 0 in `src/kernel/pit.c`
 - interrupt-driven waiting through `sleep_interrupt()`
 - working heap allocation and C++ `new` for player objects or song structures
 - a functioning build system in `CMakeLists.txt` for both C and C++ kernel code

@@ -1,4 +1,4 @@
-#include "kernel/paging.h"
+#include "memory/paging.h"
 #include "libc/memory.h"
 #include "libc/stdio.h"
 

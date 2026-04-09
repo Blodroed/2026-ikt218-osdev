@@ -1,7 +1,7 @@
 #ifndef ISR_H
 #define ISR_H
 
-#include "../libc/stdint.h"
+#include "libc/stdint.h"
 
 #define IRQ0 32
 #define IRQ1 33

@@ -1,4 +1,4 @@
-#include "kernel/heap.h"
+#include "memory/heap.h"
 #include "libc/memory.h"
 #include "libc/stdio.h"
 

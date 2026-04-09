@@ -1,4 +1,4 @@
-#include "kernel/heap.h"
+#include "memory/heap.h"
 #include "libc/libs.h"
 #include "apps/raycaster/raycaster.h"
 #include "interrupts/keyboard.h"

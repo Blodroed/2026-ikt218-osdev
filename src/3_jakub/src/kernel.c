@@ -1,8 +1,8 @@
 #include "libc/libs.h"
 #include <multiboot2.h>
 #include "gdt.h"
-#include "kernel/heap.h"
-#include "kernel/paging.h"
+#include "memory/heap.h"
+#include "memory/paging.h"
 #include "kernel/pit.h"
 #include "interrupts/idt.h"
 #include "interrupts/isr.h"

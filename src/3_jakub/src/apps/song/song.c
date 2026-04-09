@@ -1,7 +1,8 @@
 #include "apps/song/song.h"
+#include "apps/song/song_data.h"
 
 #include "kernel/pit.h"
-#include "kernel/heap.h"
+#include "memory/heap.h"
 #include "common.h"
 #include "libc/stdio.h"
 
@@ -91,23 +92,9 @@ SongPlayer* create_song_player() {
 
 // Function to play a specific song by index
 void play_music(int song_index) {
-    // Array of available songs
-    Song songs[] = {
-        {music_1, sizeof(music_1) / sizeof(Note)},
-        {starwars_theme, sizeof(starwars_theme) / sizeof(Note)},
-        {battlefield_1942_theme, sizeof(battlefield_1942_theme) / sizeof(Note)},
-        {music_2, sizeof(music_2) / sizeof(Note)},
-        {music_3, sizeof(music_3) / sizeof(Note)},
-        {music_4, sizeof(music_4) / sizeof(Note)},
-        {music_5, sizeof(music_5) / sizeof(Note)},
-        {music_6, sizeof(music_6) / sizeof(Note)},
-        {raycaster_bg_theme, sizeof(raycaster_bg_theme) / sizeof(Note)}
-    };
-    uint32_t n_songs = sizeof(songs) / sizeof(Song);
-
     // Check if index is valid
-    if (song_index < 0 || (uint32_t)song_index >= n_songs) {
-        printf("Invalid song index. Available songs: 0-%u\n", n_songs - 1);
+    if (song_index < 0 || (uint32_t)song_index >= available_song_count) {
+        printf("Invalid song index. Available songs: 0-%u\n", available_song_count - 1);
         return;
     }
 
@@ -120,7 +107,7 @@ void play_music(int song_index) {
     printf("Playing song %d...\n", song_index);
     
     // Play the selected song
-    player->play_song(&songs[song_index]);
+    player->play_song(&available_songs[song_index]);
     
     printf("Finished song %d.\n", song_index);
 
