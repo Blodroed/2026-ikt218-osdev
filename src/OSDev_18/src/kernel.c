@@ -1,4 +1,4 @@
-#include <stdint.h>
+#include <libc/stdint.h>
 
 void kernel_main(void) {
     for (;;) {
