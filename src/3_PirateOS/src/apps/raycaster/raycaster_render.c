@@ -59,18 +59,21 @@ static uint8_t vga_saved_text_regs_valid = 0;
 static uint8_t vga_saved_dac_palette[256 * 3];
 static uint8_t vga_saved_dac_palette_valid = 0;
 
+// Read one value from VGA sequencer register
 static uint8_t vga_read_seq(uint8_t index)
 {
     outb(VGA_SEQ_INDEX, index);
     return inb(VGA_SEQ_DATA);
 }
 
+// Read one value from VGA graphics controller register
 static uint8_t vga_read_gc(uint8_t index)
 {
     outb(VGA_GC_INDEX, index);
     return inb(VGA_GC_DATA);
 }
 
+// Restore a standard text-mode 16-color palette
 static void vga_restore_text_palette(void)
 {
     static const uint8_t base_palette[16][3] = {
@@ -97,6 +100,7 @@ static void vga_restore_text_palette(void)
     }
 }
 
+// Write a full VGA register table for one video mode
 static void vga_write_registers(const uint8_t *regs)
 {
     outb(VGA_MISC_WRITE, *regs++);
@@ -131,6 +135,7 @@ static void vga_write_registers(const uint8_t *regs)
     outb(VGA_AC_INDEX, 0x20);
 }
 
+// Read current VGA register state into a buffer
 static void vga_read_registers(uint8_t *regs)
 {
     *regs++ = inb(VGA_MISC_READ);
@@ -160,6 +165,7 @@ static void vga_read_registers(uint8_t *regs)
     outb(VGA_AC_INDEX, 0x20);
 }
 
+// Save the full DAC palette so it can be restored later
 static void vga_save_dac_palette(void)
 {
     outb(VGA_DAC_READ_INDEX, 0);
@@ -169,6 +175,7 @@ static void vga_save_dac_palette(void)
     vga_saved_dac_palette_valid = 1;
 }
 
+// Restore the previously saved DAC palette
 static void vga_restore_saved_dac_palette(void)
 {
     if (!vga_saved_dac_palette_valid) {
@@ -181,6 +188,7 @@ static void vga_restore_saved_dac_palette(void)
     }
 }
 
+// Re-enable normal text VRAM mapping at B8000
 static void vga_restore_text_memory_mapping(void)
 {
     outb(VGA_SEQ_INDEX, 0x02);
@@ -196,6 +204,7 @@ static void vga_restore_text_memory_mapping(void)
     outb(VGA_GC_DATA, 0x0E);
 }
 
+// Fill the entire text buffer with blank characters
 static void vga_clear_text_vram(void)
 {
     for (int i = 0; i < 80 * 25; i++) {
@@ -203,6 +212,7 @@ static void vga_clear_text_vram(void)
     }
 }
 
+// Force VGA settings so text output is visible
 static void vga_force_text_output_visible(void)
 {
     // Ensure display is not blanked by sequencer clocking mode.
@@ -222,6 +232,7 @@ static void vga_force_text_output_visible(void)
     outb(VGA_AC_INDEX, 0x20);
 }
 
+// Reset text viewport and cursor registers to safe defaults
 static void vga_fix_text_crtc_viewport(void)
 {
     // Ensure text display starts at top-left of B800:0000.
@@ -241,6 +252,7 @@ static void vga_fix_text_crtc_viewport(void)
     outb(VGA_CRTC_DATA, 0x00);
 }
 
+// Save text-mode font glyphs from VGA font plane
 static void vga_save_text_font(void)
 {
     volatile uint8_t *font_mem = (volatile uint8_t *)0xA0000;
@@ -275,6 +287,7 @@ static void vga_save_text_font(void)
     vga_text_font_saved = (nonzero_count > 512) ? 1 : 0;
 }
 
+// Restore previously saved text-mode font glyphs
 static void vga_restore_text_font(void)
 {
     volatile uint8_t *font_mem = (volatile uint8_t *)0xA0000;
@@ -311,6 +324,7 @@ static void vga_restore_text_font(void)
     outb(VGA_GC_INDEX, 0x06); outb(VGA_GC_DATA, old_gc6);
 }
 
+// Draw one pixel in the mode 13h backbuffer
 static inline void vga13_put_pixel(int x, int y, uint8_t color)
 {
     if (x < 0 || x >= VGA13_WIDTH || y < 0 || y >= VGA13_HEIGHT) {
@@ -319,6 +333,7 @@ static inline void vga13_put_pixel(int x, int y, uint8_t color)
     vga13_backbuffer[y * VGA13_WIDTH + x] = color;
 }
 
+// Fill a rectangle in the mode 13h backbuffer
 static void vga13_fill_rect(int x, int y, int w, int h, uint8_t color)
 {
     for (int yy = y; yy < y + h; yy++) {
@@ -328,6 +343,7 @@ static void vga13_fill_rect(int x, int y, int w, int h, uint8_t color)
     }
 }
 
+// Draw the top-right minimap and player marker
 void raycaster_draw_minimap_mode13_internal(Raycaster *rc)
 {
     const int map_px = 4;
@@ -348,6 +364,7 @@ void raycaster_draw_minimap_mode13_internal(Raycaster *rc)
     vga13_fill_rect(px - 1, py - 1, 3, 3, 15);
 }
 
+// Wait for vertical blank to reduce visible tearing
 static void vga13_wait_vblank(void)
 {
     while (inb(VGA_INSTAT_READ) & 0x08) {
@@ -356,6 +373,7 @@ static void vga13_wait_vblank(void)
     }
 }
 
+// Cast one ray against the map grid and return hit distance
 static double raycaster_cast_ray_fast(double from_x, double from_y, double angle)
 {
     double ray_dir_x = raycaster_math_cos(angle);
@@ -428,6 +446,7 @@ static double raycaster_cast_ray_fast(double from_x, double from_y, double angle
     }
 }
 
+// Switch VGA hardware to 320x200 256-color mode
 void raycaster_vga13_set_mode_internal(void)
 {
     asm volatile("cli");
@@ -450,6 +469,7 @@ void raycaster_vga13_set_mode_internal(void)
     asm volatile("sti");
 }
 
+// Switch VGA hardware back to text mode and restore saved state
 void raycaster_vga_text_set_mode_internal(void)
 {
     asm volatile("cli");
@@ -477,6 +497,7 @@ void raycaster_vga_text_set_mode_internal(void)
     asm volatile("sti");
 }
 
+// Clear backbuffer with one color
 void raycaster_vga13_clear_internal(uint8_t color)
 {
     for (int i = 0; i < VGA13_WIDTH * VGA13_HEIGHT; i++) {
@@ -484,6 +505,7 @@ void raycaster_vga13_clear_internal(uint8_t color)
     }
 }
 
+// Render one 3D frame into the mode 13h backbuffer
 void raycaster_render_mode13_internal(Raycaster *rc)
 {
     for (int x = 0; x < VGA13_WIDTH; x++) {
@@ -527,6 +549,7 @@ void raycaster_render_mode13_internal(Raycaster *rc)
     }
 }
 
+// Copy backbuffer to VGA memory after vblank
 void raycaster_vga13_present_internal(void)
 {
     vga13_wait_vblank();
