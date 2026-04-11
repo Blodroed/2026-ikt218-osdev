@@ -1,4 +1,4 @@
-# Install script for directory: /workspaces/2026-ikt218-osdev/src/3_jakub
+# Install script for directory: /workspaces/2026-ikt218-osdev/src/3_PirateOS
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
