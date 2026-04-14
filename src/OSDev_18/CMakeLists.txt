@@ -63,6 +63,10 @@ add_executable(uiaos-kernel
     src/kernel.c
     src/gdt.c
     src/terminal.c
+	src/idt.c
+	src/interrupt.c
+	src/interrupt.asm
+	src/keyboard.c
 )
 
 

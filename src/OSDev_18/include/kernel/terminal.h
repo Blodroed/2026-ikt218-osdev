@@ -23,14 +23,16 @@ enum vga_colour{
     VGA_COLOR_WHITE = 15,
 };
 
-uint8_t vgaEntryColour(enum vga_colour fg, enum vga_colour bg);
-uint16_t vgaEntry(unsigned char uc, uint8_t color);
+uint8_t VgaEntryColour(enum vga_colour fg, enum vga_colour bg);
+uint16_t VgaEntry(unsigned char uc, uint8_t color);
 
-void terminalEntryAt(char c, uint8_t colour, size_t x, size_t y);
-void terminalInitialize(void);
-void terminalSetColour(uint8_t colour);
-void terminalPutChar(char c);
-void terminalWrite(const char* data, size_t size);
-void terminalWriteString(const char* data);
+void TerminalEntryAt(char c, uint8_t colour, size_t x, size_t y);
+void TerminalInitialize(void);
+void TerminalSetColour(uint8_t colour);
+void TerminalUpdateCursor(void);
+void TerminalPutChar(char c);
+void TerminalWrite(const char* data, size_t size);
+void TerminalWriteString(const char* data);
+void TerminalWriteUInt(uint32_t num);
 
 #endif

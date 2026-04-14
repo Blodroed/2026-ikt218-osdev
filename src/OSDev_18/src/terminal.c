@@ -1,5 +1,6 @@
 #include <kernel/gdt.h>
 #include <kernel/terminal.h>
+#include <kernel/io.h>
 
 const size_t VGA_HEIGHT = 25;
 const size_t VGA_WIDTH = 80;
@@ -11,44 +12,55 @@ static uint8_t terminal_colour;
 static uint16_t* terminal_buffer = (uint16_t*) 0xB8000;
 
 // Builds the colour byte
-uint8_t vgaEntryColour(enum vga_colour fg, enum vga_colour bg) {
+uint8_t VgaEntryColour(enum vga_colour fg, enum vga_colour bg) {
     return fg | bg << 4;
 }
 
 // Builds the full cell
-uint16_t vgaEntry(unsigned char uc, uint8_t color) {
+uint16_t VgaEntry(unsigned char uc, uint8_t color) {
     return (uint16_t) uc | (uint16_t) color << 8;
 }
 
-void terminalEntryAt(char c, uint8_t colour, size_t x, size_t y){
+void TerminalEntryAt(char c, uint8_t colour, size_t x, size_t y){
     size_t index = y * VGA_WIDTH + x;
-    terminal_buffer[index] = vgaEntry(c, colour);
+    terminal_buffer[index] = VgaEntry(c, colour);
 }
 
-void terminalInitialize(void) {
+void TerminalInitialize(void) {
     terminal_row = 0;
     terminal_column = 0;
-    terminal_colour = vgaEntryColour(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+    terminal_colour = VgaEntryColour(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
     terminal_buffer = (uint16_t*) 0xB8000;
 
     for (size_t y = 0; y < VGA_HEIGHT; y++) {
         for (size_t x = 0; x < VGA_WIDTH; x++) {
-            terminalEntryAt(' ', terminal_colour, x, y);
+            TerminalEntryAt(' ', terminal_colour, x, y);
         }
     }
 }
 
-void terminalSetColour(uint8_t colour) {
+void TerminalSetColour(uint8_t colour) {
     terminal_colour = colour;
 }
 
-void terminalPutChar(char c) {
+void TerminalUpdateCursor(void) {
+    uint16_t pos = (uint16_t)(terminal_row * VGA_WIDTH + terminal_column);
+
+    OutPortByte(0x3D4, 0x0F);
+    OutPortByte(0x3D5, (uint8_t)(pos & 0xFF));
+
+    OutPortByte(0x3D4, 0x0E);
+    OutPortByte(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
+}
+
+void TerminalPutChar(char c) {
     if (c == '\n') {
         terminal_column = 0;
         terminal_row++;
+        TerminalUpdateCursor();
         return;
     }
-    terminalEntryAt(c, terminal_colour,terminal_column, terminal_row);
+    TerminalEntryAt(c, terminal_colour,terminal_column, terminal_row);
     terminal_column++;
 
     if (terminal_column == VGA_WIDTH) {
@@ -59,21 +71,48 @@ void terminalPutChar(char c) {
     if (terminal_row == VGA_HEIGHT) {
         terminal_row = 0;
     }
+
+    TerminalUpdateCursor();
 }
 
-void terminalWrite(const char* data, size_t size) {
+void TerminalWrite(const char* data, size_t size) {
     for (size_t i = 0; i < size; i++) {
-        terminalPutChar(data[i]);
+        TerminalPutChar(data[i]);
     }
 }
 
-void terminalWriteString(const char* data) {
+void TerminalWriteString(const char* data) {
     size_t len = 0;
 
     while (data[len] != '\0') {
         len++;
     }
 
-    terminalWrite(data, len);
+    TerminalWrite(data, len);
+}
+
+void TerminalWriteUInt(uint32_t num) {
+    if (num == 0) {
+        TerminalPutChar('0');
+        return;
+    }
+
+    char buffer[10];
+    size_t i = 0;
+
+    while (num > 0) {
+        buffer[i++] = '0' + (num % 10);
+        num /= 10;
+    }
+
+    for (size_t j = 0; j < i / 2; j++) {
+        char temp = buffer[j];
+        buffer[j] = buffer[i - j - 1];
+        buffer[i - j - 1] = temp;
+    }
+
+    for (size_t j = 0; j < i; j++) {
+        TerminalPutChar(buffer[j]);
+    }
 }
 

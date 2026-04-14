@@ -1,12 +1,12 @@
 %define GDT_CODE_SELECTOR 0x08
 %define GDT_DATA_SELECTOR 0x10
 
-global gdtFlush
+global GdtFlush
 
 section .text
 bits 32
 
-gdtFlush:
+GdtFlush:
     mov eax, [esp + 4]
     lgdt [eax]
 
