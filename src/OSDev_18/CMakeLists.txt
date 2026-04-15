@@ -71,6 +71,7 @@ add_executable(uiaos-kernel
 	src/memutils.c
 	src/memory.c
 	src/pit.c
+	src/songPlayer.c
 )
 
 

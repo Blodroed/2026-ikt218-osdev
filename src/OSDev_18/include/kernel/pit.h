@@ -1,5 +1,5 @@
-#ifndef PIT_H
-#define PIT_H
+#ifndef KERNEL_PIT_H
+#define KERNEL_PIT_H
 
 #include <libc/stdint.h>
 #include <libc/stdbool.h>

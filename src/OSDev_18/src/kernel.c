@@ -6,15 +6,37 @@
 #include <kernel/keyboard.h>
 #include <kernel/memory.h>
 #include <kernel/pit.h>
-
-
-/*TODO
-clean up terminal - enable scrolling?
-
-*/
-
+#include <songApp/song.h>
+#include <songApp/frequencies.h>
 
 extern uint32_t end;
+
+void PlayMusic(void) {
+    Song songs[] = {
+        {music_1, sizeof(music_1) / sizeof(Note)},
+        {music_2, sizeof(music_2) / sizeof(Note)},
+        {music_3, sizeof(music_3) / sizeof(Note)},
+        {music_4, sizeof(music_4) / sizeof(Note)},
+        {music_5, sizeof(music_5) / sizeof(Note)},
+        {music_6, sizeof(music_6) / sizeof(Note)}
+    };
+
+    uint32_t songCount = sizeof(songs) / sizeof(Song);
+
+    SongPlayer* player = CreateSongPlayer();
+
+    if (!player) {
+        TerminalWriteString("Failed to create SongPlayer.\n");
+        return;
+    }
+
+    while(1) {
+        for(uint32_t i = 0; i < songCount; i++) {
+            player->play_song(&songs[i]);
+            SleepInterrupt(1000);
+        }
+    }
+}
 
 void main(void) {
     TerminalInitialize();
@@ -27,6 +49,8 @@ void main(void) {
     InitKernelMemory(&end);
     InitPaging();
     PrintMemoryLayout();
+
+    /*
 
     void* memory1 = malloc(48261);
     void* memory2 = malloc(27261);
@@ -53,6 +77,10 @@ void main(void) {
     TerminalWriteString("\n");
 
     SleepTest();
+
+    */
+
+    PlayMusic();
 
     for (;;) {
         __asm__ volatile("hlt");
