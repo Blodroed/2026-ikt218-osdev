@@ -6,7 +6,6 @@ extern "C" {
     #include "common.h"
 }
 
-
 void enable_speaker() {
     // Pseudocode for enable_speaker:
     // 1. Read the current state from the PC speaker control port.
@@ -85,6 +84,7 @@ void play_song_impl(Song *song) {
     }
     // 3. Disable the speaker after all notes have been played.
     disable_speaker();
+
 }
 
 void play_song(Song *song) {

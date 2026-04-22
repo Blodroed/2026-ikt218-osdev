@@ -3,6 +3,7 @@
 #include "ports.h"
 
 int _dummy_warning_remover = 0; // Fixes a clang empty translation unit warning
+char last_key = 0;
 
 /* Let's forward declare the put char function we have in kernel.c */
 extern void terminal_putchar(char c);
@@ -65,8 +66,17 @@ void keyboard_handler(registers_t *r)
         *  hold a key down, you will get repeated key press
         *  interrupts. */
         char c = kbdus[scancode];
+        last_key = c; 
         terminal_putchar(c);
     }
+}
+
+
+char keyboard_getchar(void) {
+    while (last_key == 0);  // vent på tastetrykk
+    char c = last_key;
+    last_key = 0;           // nullstill
+    return c;
 }
 
 /* Installs the keyboard handler into IRQ1 */

@@ -130,15 +130,34 @@ void terminal_putentryat(char c, uint8_t color, size_t x, size_t y)
 	terminal_buffer[index] = vga_entry(c, color);
 }
 
+
+
 void terminal_putchar(char c) 
 {
+    // Check new lines
     if (c == '\n') {
         terminal_column = 0;
-        terminal_row++;
-        if (terminal_row == VGA_HEIGHT)
-            terminal_row = 0;
-        return;
+        ++terminal_row;
+
+        if (terminal_row == VGA_HEIGHT) {// Check if we need to scroll
+            for (size_t y = 1; y < VGA_HEIGHT; y++) {
+                for (size_t x = 0; x < VGA_WIDTH; x++) {
+                    const size_t src = y * VGA_WIDTH + x;
+                    const size_t dst = (y - 1) * VGA_WIDTH + x;
+                    terminal_buffer[dst] = terminal_buffer[src];
+                }
+            }
+
+            for (size_t x = 0; x < VGA_WIDTH; x++) {
+                terminal_buffer[(VGA_HEIGHT - 1) * VGA_WIDTH + x] = vga_entry(' ', terminal_color);
+            }
+
+            terminal_row = VGA_HEIGHT - 1;
+        }
+
+        return; // Return since we dont want to print the new line character
     }
+
 	terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
 	if (++terminal_column == VGA_WIDTH) {
 		terminal_column = 0;
@@ -227,6 +246,22 @@ void play_music() {
 }
 
 
+/*------- MENU -------*/
+void show_menu(void) {
+    terminal_writestring(""); 
+    terminal_writestring("  +===============================+\n");
+    terminal_writestring("  |      UiAOS Main Menu          |\n");
+    terminal_writestring("  +===============================+  What do you \n");
+    terminal_writestring("  | 1. Play Music                 |  want to do? \n");
+    terminal_writestring("  | 2. Piano Keyboard             |      ___\n");
+    terminal_writestring("  | 3. System Info                |    (o v o)\n");
+    terminal_writestring("  | 4. Memory Viewer              |      /|\\\n");
+    terminal_writestring("  +===============================+      / \\\n");
+    terminal_writestring("\n  Press a key to select...\n");
+}
+
+
+
 
 void main(){
     // Initialize the monitor (screen output)
@@ -259,6 +294,7 @@ void main(){
     // Initialize PIT
     init_pit(); // <------ THIS IS PART OF THE ASSIGNMENT
 
+    terminal_writestring("\n ");
 	terminal_writestring("           \xB2\xDB\xB2\n");
 	terminal_writestring("          \xB2\xDB\xDB\xDB\xB2\n");
 	terminal_writestring("         \xB2\xDB\xDB\xB0\xDB\xDB\xB2\n");
@@ -274,7 +310,7 @@ void main(){
 	terminal_writestring("  \xB0\xDB\xDB\xB0\xB0       \xB0\xDB\xB2\n");
 	terminal_writestring("                \xB0\xB0\n");
 	terminal_writestring(" ----------------------------------------------- \n");
-	terminal_writestring(" Hello, World!\n");
+    
 
     // Test malloc as the teacher's example shows
     void* some_memory = malloc(12345);
@@ -282,7 +318,7 @@ void main(){
     void* memory3     = malloc(13331);
     (void)some_memory; (void)memory2; (void)memory3;
 
-    printf("Hello World!\n");
+
 
 	/* Enable hardware interrupts */
 	asm volatile("sti");
@@ -300,8 +336,32 @@ void main(){
     }*/
 
 
-    // MUSIC 
-    play_music();
 
+    printf("\n Do you want to see the menu? \n (reach it whenever you want by writing menue/Menu in terminal)): ");
+    while(1) {
+        
+        char answer = keyboard_getchar();
+        if (answer == 'm' || answer == 'M') {
+            char answer = keyboard_getchar();
+            if(answer == 'e' || answer == 'E'){
+                char answer = keyboard_getchar();
+                if(answer == 'n' || answer == 'N'){
+                    char answer = keyboard_getchar();
+                    if(answer == 'u' || answer == 'U'){
+                        char answer = keyboard_getchar();
+                        printf("\n\n");
+                        if (answer == 'e' || answer == 'E'){
+                            show_menu();
+                        } 
+                    } 
+                } 
+            } 
+        }
+        if (answer == '1'){
+            //PLAY MUSIC
+            play_music();
+        }
+    }
+    
     for(;;);
 }
