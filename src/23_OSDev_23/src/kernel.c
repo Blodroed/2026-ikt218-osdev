@@ -248,7 +248,7 @@ void play_music() {
 }
 
 
-/*------- MENU -------*/
+/*------------------------ MENU -----------------------*/
 void show_menu(void) {
     terminal_writestring("\n"); 
     terminal_writestring("  +===============================+\n");
@@ -262,7 +262,7 @@ void show_menu(void) {
     terminal_writestring("\n  Press a key to select...\n");
 }
 
-/*--------- interrupt test --------*/
+/*-------------------- interrupt test --------------------*/
 void interrupt_test(counter){
     while (!quit) {
                 printf("[%d]: Sleeping with busy-waiting (HIGH CPU).\n", counter);
