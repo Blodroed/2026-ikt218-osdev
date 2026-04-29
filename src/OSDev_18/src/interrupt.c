@@ -47,26 +47,26 @@ const char* isrMessages[] = {
 
 void PicSendEoi(uint8_t irqNum) {
     if (irqNum >= 8) {
-        OutPortByte(PIC2_COMMAND, PIC_EOI);
+        OutPortByte(PIC2_COMMAND, PIC_EOI);  // Slave
     }
-    OutPortByte(PIC1_COMMAND, PIC_EOI);
+    OutPortByte(PIC1_COMMAND, PIC_EOI); // Master
 }
 
 void PicRemap(void) {
-    OutPortByte(PIC1_COMMAND, 0x11);
-    OutPortByte(PIC2_COMMAND, 0x11);
+    OutPortByte(PIC1_COMMAND, 0x11); // sends init command to Master
+    OutPortByte(PIC2_COMMAND, 0x11); // sends init command to Slave
 
-    OutPortByte(PIC1_DATA, 0x20);
-    OutPortByte(PIC2_DATA, 0x28);
+    OutPortByte(PIC1_DATA, 0x20); // sets Master vector offset to 32
+    OutPortByte(PIC2_DATA, 0x28); // sets Slave vector offset to 40
 
-    OutPortByte(PIC1_DATA, 0x04);
-    OutPortByte(PIC2_DATA, 0x02);
+    OutPortByte(PIC1_DATA, 0x04); // Tells Master that Slave is available on IRQ2
+    OutPortByte(PIC2_DATA, 0x02); // Tells Slave that it is connected to Master's IRQ2
 
-    OutPortByte(PIC1_DATA, 0x01);
-    OutPortByte(PIC2_DATA, 0x01);
+    OutPortByte(PIC1_DATA, 0x01); // Set Master to use 8086 mode
+    OutPortByte(PIC2_DATA, 0x01); // set Slave to use 8086 mode
 
-    OutPortByte(PIC1_DATA, 0x00);
-    OutPortByte(PIC2_DATA, 0x00);
+    OutPortByte(PIC1_DATA, 0x00); // Unmask all Master IRQs
+    OutPortByte(PIC2_DATA, 0x00); // Unmask all Slave IRQs
 }
 
 void IsrHandler(struct Registers* registers) {

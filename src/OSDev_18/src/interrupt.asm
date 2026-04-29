@@ -2,64 +2,72 @@ extern IsrHandler
 extern IrqHandler
 
 isr_common_stub:
-    pusha
-	mov ax, ds
-	push eax
-	mov ax, 0x10
+    ; 1. Save CPU state
+    pusha           ; Pushes general purpose registers onto stack
+	mov ax, ds      ; Lower 16-bits of eax = ds.
+	push eax        ; save the data segment descriptor
+	mov ax, 0x10    ; loads data segment descriptor into kernel
 	mov ds, ax
 	mov es, ax
 	mov fs, ax
 	mov gs, ax
-    push esp
-    call IsrHandler
-    add esp, 4
-	pop eax 
+    push esp        ; pushes stack pointer as arg to function
+
+    call IsrHandler       
+
+    ; 2. Restore CPU state
+    add esp, 4      ; removes arg pushed to function
+	pop eax         ; restores the data segment descriptor
 	mov ds, ax
 	mov es, ax
 	mov fs, ax
 	mov gs, ax
-	popa
-	add esp, 8
-	iret
+	popa            ; restores general purpose registers
+	add esp, 8      ; removes interrupt num and error num from stack
+	iret            ; returns from interrupt
 
 irq_common_stub:
-    pusha 
-    mov ax, ds
-    push eax
-    mov ax, 0x10
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-    push esp
+    ; 1. Save CPU state
+    pusha           ; Pushes general purpose registers onto stack
+	mov ax, ds      ; Lower 16-bits of eax = ds.
+	push eax        ; save the data segment descriptor
+	mov ax, 0x10    ; loads data segment descriptor into kernel
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+    push esp        ; pushes stack pointer as arg to function
+
     call IrqHandler
-    add esp, 4
-    pop eax
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-    popa
-    add esp, 8
-    iret 
+
+    ; 2. Restore CPU state
+    add esp, 4      ; removes arg pushed to function
+	pop eax         ; restores the data segment descriptor
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+	popa            ; restores general purpose registers
+	add esp, 8      ; removes interrupt num and error num from stack
+	iret            ; returns from interrupt
     
 %macro isr_no_err_stub 1
 isr_stub_%+%1:
-    push dword 0
-    push dword %1
+    push dword 0         ; pushes dummy error
+    push dword %1        ; pushes interrupt vector number
     jmp isr_common_stub
 %endmacro
 
 %macro isr_err_stub 1
 isr_stub_%+%1:
-    push dword %1
+    push dword %1        ; pushes interrupt vector number
     jmp isr_common_stub
 %endmacro
 
 %macro irq_stub 1
 irq_stub_%+%1:
-    push dword 0
-    push dword (32 + %1)
+    push dword 0         ; pushes dummy error
+    push dword (32 + %1) ; pushes interrupt vector number + 32 to account for isr's
     jmp irq_common_stub
 %endmacro
 
@@ -115,16 +123,16 @@ irq_stub 15
 
 global isr_stub_table
 isr_stub_table:
-%assign i 0 
+%assign i 0           ; creates a variable and sets it to 0
 %rep    32 
-    dd isr_stub_%+i
-%assign i i+1 
+    dd isr_stub_%+i   ; adds one address to the table
+%assign i i+1         ; increments variable
 %endrep
 
 global irq_stub_table
 irq_stub_table:
-%assign i 0
+%assign i 0           ; creates a variable and sets it to 0
 %rep    16
-    dd irq_stub_%+i
-%assign i i+1
+    dd irq_stub_%+i   ; adds one address to the table
+%assign i i+1         ; increments variable
 %endrep

@@ -28,7 +28,7 @@ char GetLastKeyPressed(void) {
 }
 
 void KeyboardHandler(struct Registers* registers) {
-    (void) registers;
+    (void) registers; // cast to void to silence warning
 
     uint8_t scancode = InPortByte(KEYBOARD_DATA_PORT);
 
@@ -37,6 +37,7 @@ void KeyboardHandler(struct Registers* registers) {
         index++;
     }
 
+    // ignores key release events
     if (scancode & 0x80) {
         return;
     }
